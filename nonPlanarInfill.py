@@ -68,11 +68,11 @@ def process_gcode(input_file, amplitude, frequency):
 
     solid_infill_heights = []
     for line in lines:
-        if line.startswith('G1') and 'Z' in line:
+       if line.startswith('G1') and 'Z' in line or line.startswith('G0') and 'F' in line and 'Z' in line:
             z_match = re.search(r'Z([-+]?\d*\.?\d+)', line)
             if z_match:
                 current_z = float(z_match.group(1))
-        if ';TYPE:Solid infill' in line:
+        if ';TYPE:Solid infill' in line or ';TYPE:SOLID-FILL' in line:
             solid_infill_heights.append(current_z)
 
     def update_layer_bounds(current_z):
@@ -85,7 +85,7 @@ def process_gcode(input_file, amplitude, frequency):
             next_top_layer = min(upper_layers)
 
     for line_num, line in enumerate(lines):
-        if line.startswith('G1') and 'Z' in line:
+        if line.startswith('G1') and 'Z' in line or line.startswith('G0') and 'F' in line and 'Z' in line:
             z_match = re.search(r'Z([-+]?\d*\.?\d+)', line)
             if z_match:
                 current_z = float(z_match.group(1))
@@ -93,7 +93,7 @@ def process_gcode(input_file, amplitude, frequency):
                 update_layer_bounds(current_z)
                 logging.debug(f"Layer change detected: Z = {current_z}")
 
-        if ';TYPE:Internal infill' in line:
+        if ';TYPE:Internal infill' in line or ';TYPE:FILL' in line:
             in_infill = True
             logging.debug(f"Entered infill section at line {line_num}.")
         elif line.startswith(';TYPE:'):
@@ -160,3 +160,4 @@ if __name__ == "__main__":
 
     modified_lines = process_gcode(input_file, amplitude, frequency)
     save_gcode(output_file, modified_lines)
+
